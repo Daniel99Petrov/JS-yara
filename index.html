@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .box {
+            margin: 30px auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+        }
+
+        .input-dream {
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Dream Weather</h1>
+    <div class="input-dream">
+        <label for="inputDream">I want it this warmer</label>
+        <input type="text" class="inputDream" placeholder="Enter Temperature">
+        <button class="btn-dream">Submit</button>
+    </div>
+    
+    <div class="container">
+        <div class="box">
+            <div class="input">
+                <label for="inputOpen">OpenWeather App</label>
+                <input type="text" class="inputOpen" placeholder="Enter Location">
+                <button class="btn-open">Search</button>
+            </div>
+
+            <div class="display-open-weather">
+                <h1 class="city-open"></h1>
+                <h3 class=" temp-open"></h3>
+                <h3 class=" feel-open"></h3>
+            </div>
+        </div>
+        <div class="box">
+            <div class="input">
+                <label for="inputApi">WeatherApi App</label>
+                <input type="text" class="inputApi" placeholder="Enter Location">
+                <button class="btn-api">Search</button>
+            </div>
+
+            <div class="display-api-weather">
+                <h1 class=" city-api"></h1>
+                <h3 class=" temp-api"></h3>
+                <h3 class=" feel-api"></h3>
+            </div>
+        </div>
+    </div>
+    <script src="fetch-API.js"></script>
+</body>
+</html>
