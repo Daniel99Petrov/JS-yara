@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form>
+      <label for="select-category"> Category:</label>
+      <select id="select-category">
+        <option value="1">Sports</option>
+        <option value="2" selected="selected">Geography</option>
+        <option value="3">History</option>
+      </select>
+    </form>
+
+    <form>
+      <label for="select-count"> Count:</label>
+      <select id="select-count">
+        <option value="1">10</option>
+        <option value="2" selected="selected">20</option>
+        <option value="3">30</option>
+      </select>
+    </form>
+
+    <button class="search">Search</button>
+    <button class="reset hidden">Reset</button>
+    <hr />
+    <h3 class="quest-text">Search for a question</h3>
+    <div class="answers hidden">
+      <div>
+        <input type="radio" id="1" name="drone" value="" />
+        <label for="1"></label>
+      </div>
+
+      <div>
+        <input type="radio" id="2" name="drone" value="" />
+        <label for="2"></label>
+      </div>
+
+      <div>
+        <input type="radio" id="3" name="drone" value="" />
+        <label for="3"></label>
+      </div>
+      <div>
+        <input type="radio" id="4" name="drone" value="" />
+        <label for="4"></label>
+      </div>
+    </div>
+    <button class="next hidden">Next</button>
+    <hr />
+    <div class="history">
+      <h2>Previous questions</h2>
+      <hr />
+      <div class="history-cards">
+        <!-- <h3 class="number"></h3>
+        <h3 class="history"></h3> -->
+      </div>
+    </div>
+
+    <script src="fetch-quiz.js"></script>
+  </body>
+</html>
