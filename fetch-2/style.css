@@ -1,3 +1,16 @@
 .hidden {
     display: none;
 }
+/* 
+input {
+    display:block
+} */
+
+.checked + label{
+
+    background-color: orange;
+}
+
+.history-cards input{
+    display: none;
+}
