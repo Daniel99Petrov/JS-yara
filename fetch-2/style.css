@@ -11,6 +11,21 @@ input {
     background-color: orange;
 }
 
+.history-cards .green + label{
+    background-color: green;
+}
+
 .history-cards input{
     display: none;
+}
+.btn {
+    padding: 5px 20px;
+    border: 30px;
+    border-radius: 8px;
+    background-color: rgb(165, 165, 240);
+}
+.answers-container {
+    background-color: #f2f2f2; /* Change this color to your desired background color */
+    padding: 10px; /* Add padding for better visual appearance */
+    border-radius: 8px;
 }

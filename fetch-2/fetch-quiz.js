@@ -1,5 +1,6 @@
 let categoryDropdown = document.getElementById("select-category");
 let countDropdown = document.getElementById("select-count");
+let difficultyDropdown = document.getElementById("select-difficulty")
 let searchButton = document.querySelector(".search");
 let nextButton = document.querySelector(".next");
 let resetButton = document.querySelector(".reset");
@@ -20,6 +21,7 @@ let myAnswers = [];
 let correctAnswer;
 let categoryTransformer = 22;
 let count = 20;
+let difficulty = 'medium';
 let currentCount = 0;
 let points = 0;
 
@@ -44,6 +46,18 @@ countDropdown.onchange = (ev) => {
     count = 30;
   } else {
     count = 20;
+  }
+};
+
+difficultyDropdown.onchange = (ev) => {
+  let selecetedIndex = difficultyDropdown.selectedIndex;
+  let selectedOption = difficultyDropdown.options[selecetedIndex];
+  if (selectedOption.value === "1") {
+    difficulty = 'easy';
+  } else if (selectedOption.value === "3") {
+    difficulty = 'hard';
+  } else {
+    difficulty = 'medium';
   }
 };
 
@@ -98,8 +112,14 @@ function displayQuestion() {
     answerContainer.appendChild(input);
     answerContainer.appendChild(label);
     answers.appendChild(answerContainer);
+
+    if(label.textContent === currentQuestion.correct_answer){
+      input.classList.add("green");
+      console.log(label);
+    }
+    answers.classList.add("answers-container");
   });
-    currentAnswers = [];
+    
     
 }
 
@@ -124,6 +144,7 @@ function handleNextButtonClick() {
       `label[for="${selectedRadioButton.value}"]`
     ).textContent;
     
+
     document.querySelector(
       `label[for="${selectedRadioButton.value}"]`
     ).classList.add("checked");
@@ -136,6 +157,7 @@ function handleNextButtonClick() {
     currentCount++;
 
     if (currentCount < count) {
+      currentAnswers = [];
       displayQuestion();
     } else {
       // No more questions, hide the "Next" button
@@ -149,7 +171,7 @@ function handleNextButtonClick() {
 
 searchButton.addEventListener("click", function () {
   fetch(
-    `https://opentdb.com/api.php?amount=${count}&category=${categoryTransformer}&type=multiple`
+    `https://opentdb.com/api.php?amount=${count}&category=${categoryTransformer}&type=multiple&difficulty=${difficulty}`
   )
     .then((data) => {
       return data.json();
