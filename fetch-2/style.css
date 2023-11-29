@@ -11,6 +11,9 @@ input {
     background-color: orange;
 }
 
+.history-cards {
+    background-color: #f2f2f2;
+}
 .history-cards .green + label{
     background-color: green;
 }
@@ -18,6 +21,11 @@ input {
 .history-cards input{
     display: none;
 }
+
+.history h2 {
+    text-align: center;
+}
+
 .btn {
     padding: 5px 20px;
     border: 30px;

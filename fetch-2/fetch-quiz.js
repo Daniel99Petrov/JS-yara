@@ -1,12 +1,13 @@
 let categoryDropdown = document.getElementById("select-category");
 let countDropdown = document.getElementById("select-count");
-let difficultyDropdown = document.getElementById("select-difficulty")
+let difficultyDropdown = document.getElementById("select-difficulty");
 let searchButton = document.querySelector(".search");
 let nextButton = document.querySelector(".next");
 let resetButton = document.querySelector(".reset");
 let questText = document.querySelector(".quest-text");
 let answers = document.querySelector(".answers");
-let history = document.querySelector('.history-cards');
+let history = document.querySelector(".history-cards");
+let pointsMessage = document.querySelector(".points");
 
 // let history = {};
 // history.array.forEach(element => {
@@ -21,13 +22,13 @@ let myAnswers = [];
 let correctAnswer;
 let categoryTransformer = 22;
 let count = 20;
-let difficulty = 'medium';
+let difficulty = "medium";
 let currentCount = 0;
 let points = 0;
 
 categoryDropdown.onchange = (ev) => {
-  let selecetedIndex = categoryDropdown.selectedIndex;
-  let selectedOption = categoryDropdown.options[selecetedIndex];
+  let selectedIndex = categoryDropdown.selectedIndex;
+  let selectedOption = categoryDropdown.options[selectedIndex];
   if (selectedOption.value === "1") {
     categoryTransformer = 21;
   } else if (selectedOption.value === "3") {
@@ -35,11 +36,12 @@ categoryDropdown.onchange = (ev) => {
   } else {
     categoryTransformer = 22;
   }
+  console.log(categoryTransformer);
 };
 
 countDropdown.onchange = (ev) => {
-  let selecetedIndex = countDropdown.selectedIndex;
-  let selectedOption = countDropdown.options[selecetedIndex];
+  let selectedIndex = countDropdown.selectedIndex;
+  let selectedOption = countDropdown.options[selectedIndex];
   if (selectedOption.value === "1") {
     count = 10;
   } else if (selectedOption.value === "3") {
@@ -50,14 +52,14 @@ countDropdown.onchange = (ev) => {
 };
 
 difficultyDropdown.onchange = (ev) => {
-  let selecetedIndex = difficultyDropdown.selectedIndex;
-  let selectedOption = difficultyDropdown.options[selecetedIndex];
+  let selectedIndex = difficultyDropdown.selectedIndex;
+  let selectedOption = difficultyDropdown.options[selectedIndex];
   if (selectedOption.value === "1") {
-    difficulty = 'easy';
+    difficulty = "easy";
   } else if (selectedOption.value === "3") {
-    difficulty = 'hard';
+    difficulty = "hard";
   } else {
-    difficulty = 'medium';
+    difficulty = "medium";
   }
 };
 
@@ -83,8 +85,9 @@ function shuffle(array) {
 
 function displayQuestion() {
   currentQuestion = allQuestions[currentCount - 1];
- questionText= `${currentCount}.${currentQuestion.question}`;
- questText.textContent = questionText;
+  questionText = `${currentCount}.${currentQuestion.question}`;
+  questText.textContent = questionText;
+  console.log(questText.textContent);
   console.log(currentQuestion.correct_answer);
   currentAnswers.push(currentQuestion.correct_answer);
   currentQuestion.incorrect_answers.forEach((element) => {
@@ -113,14 +116,12 @@ function displayQuestion() {
     answerContainer.appendChild(label);
     answers.appendChild(answerContainer);
 
-    if(label.textContent === currentQuestion.correct_answer){
+    if (label.textContent === currentQuestion.correct_answer) {
       input.classList.add("green");
       console.log(label);
     }
     answers.classList.add("answers-container");
   });
-    
-    
 }
 
 function handleNextButtonClick() {
@@ -133,7 +134,7 @@ function handleNextButtonClick() {
 
   // Check if a radio button is selected
   if (selectedRadioButton) {
-    selectedRadioButton.classList.add("checked")
+    selectedRadioButton.classList.add("checked");
     history.innerHTML += `${questionText}
     <br><br>
     ${answers.innerHTML} 
@@ -143,32 +144,64 @@ function handleNextButtonClick() {
     const selectedLabel = document.querySelector(
       `label[for="${selectedRadioButton.value}"]`
     ).textContent;
-    
 
-    document.querySelector(
-      `label[for="${selectedRadioButton.value}"]`
-    ).classList.add("checked");
+    document
+      .querySelector(`label[for="${selectedRadioButton.value}"]`)
+      .classList.add("checked");
 
     // Store the chosen answer in the array
     myAnswers.push(selectedLabel);
     console.log(myAnswers);
-
+    if (selectedLabel === currentQuestion.correct_answer) {
+      points++;
+    }
+    console.log(points);
     // Move to the next question
     currentCount++;
+    currentAnswers = [];
 
-    if (currentCount < count) {
-      currentAnswers = [];
+    if (currentCount <= count) {
       displayQuestion();
     } else {
-      // No more questions, hide the "Next" button
-      nextButton.classList.add("hidden");
+      endGame();
     }
   } else {
     // Handle the case where no radio button is selected
-    // alert("Please select an answer before moving to the next question.");
+    alert("Please select an answer before moving to the next question.");
   }
 }
 
+function endGame() {
+  const pointsResult = Math.round((points / count) * 100);
+      pointsMessage.innerHTML = `<h2>You scored ${pointsResult}% !</h2>`;
+      answers.classList.add("hidden");
+      questText.classList.add("hidden");
+      document.querySelector(".history").classList.remove("hidden");
+      nextButton.classList.add("hidden");
+
+      
+}
+
+function resetGame() {
+  answers.classList.add("hidden");
+  resetButton.classList.add("hidden");
+  nextButton.classList.add("hidden");
+  searchButton.classList.remove("hidden");
+  document.querySelector(".history").classList.add("hidden");
+  questText.textContent = `Press START`;
+  questText.classList.remove("hidden");
+  history.innerHTML = ``;
+  allQuestions = [];
+  
+      currentQuestion = {};
+      questionText;
+      currentAnswers = [];
+      myAnswers = [];
+      correctAnswer;
+      currentCount = 0;
+      points = 0;
+
+}
 searchButton.addEventListener("click", function () {
   fetch(
     `https://opentdb.com/api.php?amount=${count}&category=${categoryTransformer}&type=multiple&difficulty=${difficulty}`
@@ -194,7 +227,9 @@ searchButton.addEventListener("click", function () {
     });
 });
 
-nextButton.addEventListener('click', handleNextButtonClick);
+nextButton.addEventListener("click", handleNextButtonClick);
+
+resetButton.addEventListener('click', resetGame);
 
 // TODO make radio buttons invisible in history
 // TODO chosen answer to be marked in orange
