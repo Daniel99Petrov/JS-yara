@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Canvas Map</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simplify-js@1.2.4/simplify.min.js"></script>
+
+
+    <style>
+        canvas {
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+
+        #countryDetails {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="mapCanvas" width="800" height="500"></canvas>
+    <div id="countryDetails"></div>
+    <script>
+        function getMinXmaxY(coordinates) {
+            const x = coordinates.reduce((a, b) => Math.min(Number.isFinite(a) ? a : a[0], b[0]))
+            const y = coordinates.reduce((a, b) => Math.max(Number.isFinite(a) ? a : a[1], b[1]))
+            return { x, y }
+        }
+
+        async function getCountries(names = ['Bulgaria'], scale = 100) {
+
+            const data = await (await fetch("europe.geojson")).json()
+            console.log('data :>> ', data);
+            const countries = data.features.filter(f => names.includes(f.properties.NAME))
+
+            console.log('countries :>> ', countries);
+            return countries.map(country => {
+
+                const coordinates = country.geometry.coordinates[0]
+                const { x: minX, y: maxY } = getMinXmaxY(coordinates)
+
+                return {
+                    properties: country.properties,
+                    minX, maxY,
+                    coordinates: coordinates.map(x => [(x[0] - minX) * scale, (x[1] * -1 + maxY) * scale])
+                }
+            })
+        }
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const canvas = document.getElementById("mapCanvas");
+            const ctx = canvas.getContext("2d");
+            const detailsDiv = document.getElementById("countryDetails");
+
+            const countries_data = await getCountries(['Bulgaria', 'Romania', 'Serbia'])
+
+
+            const countries = countries_data.map(({ coordinates, properties: { NAME } }) => ({
+                countryPoints: coordinates,
+                color: getRandomColor(),
+                name: NAME,
+            }));
+
+            function drawMap() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (const c of countries) {
+                    const { countryPoints, color, name } = c;
+                    ctx.beginPath();
+                    for (const point of countryPoints) {
+                        ctx.lineTo(point[0], point[1]);
+                    }
+                    ctx.closePath();
+
+                    // Fill color
+                    ctx.fillStyle = color;
+                    ctx.fill();
+
+                    // Border color
+                    ctx.strokeStyle = "#000";
+                    ctx.lineWidth = 5; // Thick border
+                    ctx.stroke();
+
+                    // Display country name
+                    ctx.fillStyle = "#000";
+                    ctx.font = "22px Arial";
+                    centerText(ctx, countryPoints, name);
+                }
+            }
+
+            function centerText(ctx, points, text) {
+                // Calculate the centroid of the polygon
+                const centroid = points.reduce((acc, point) => [acc[0] + point[0], acc[1] + point[1]], [0, 0]);
+                centroid[0] /= points.length;
+                centroid[1] /= points.length;
+
+                // Measure the text width
+                const textWidth = ctx.measureText(text).width;
+
+                // Set the position to center the text
+                const x = centroid[0] - textWidth / 2;
+                const y = centroid[1] + 5; // Adjust as needed for vertical alignment
+
+                // Draw the text
+                ctx.fillText(text, x, y);
+            }
+
+
+            function getRandomColor() {
+                const letters = "0123456789ABCDEF";
+                let color = "#";
+
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+
+                return color;
+            }
+
+
+            function handleMouseOver(event) {
+                const mouseX = event.clientX - canvas.offsetLeft;
+                const mouseY = event.clientY - canvas.offsetTop;
+
+                for (const country of countries) {
+                    ctx.beginPath();
+                    for (const point of country.countryPoints) {
+                        ctx.lineTo(point[0], point[1]);
+                    }
+                    ctx.closePath();
+
+                    if (ctx.isPointInPath(mouseX, mouseY)) {
+                        canvas.style.cursor = "pointer";
+                        detailsDiv.innerHTML = `<h2>${country.name}</h2>`;
+                        return;
+                    }
+                }
+
+                canvas.style.cursor = "default";
+                detailsDiv.innerHTML = "";
+            }
+
+            canvas.addEventListener("mousemove", handleMouseOver);
+
+            function animate() {
+                drawMap();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        });
+    </script>
+</body>
+
+</html>

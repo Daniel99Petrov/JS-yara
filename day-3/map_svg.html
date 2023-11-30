@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map</title>
+    <style>
+        svg {
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        #countryDetails {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <svg id="mapSvg" width="600" height="400"></svg>
+    <div id="countryDetails"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const svg = document.getElementById("mapSvg");
+            const detailsDiv = document.getElementById("countryDetails");
+
+            const countries = [
+                { name: "CountryA", path: "M100,100 L150,50 L200,100 L200,200 L100,200 Z", details: "Details for CountryA." },
+                { name: "CountryB", path: "M200,200 L250,150 L300,200 L300,300 L200,300 Z", details: "Details for CountryB." },
+                // Add more countries with their paths and details
+            ];
+
+            for (const country of countries) {
+                const countryElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                countryElement.setAttribute("d", country.path);
+                countryElement.setAttribute("fill", "#ccc"); // Use a neutral color for countries
+                countryElement.addEventListener("mouseover", () => handleMouseOver(country));
+                countryElement.addEventListener("mouseout", handleMouseOut);
+                countryElement.addEventListener("click", () => displayCountryDetails(country));
+                svg.appendChild(countryElement);
+            }
+
+            function handleMouseOver(country) {
+                svg.style.cursor = "pointer";
+                detailsDiv.innerHTML = `<h2>${country.name}</h2>`;
+            }
+
+            function handleMouseOut() {
+                svg.style.cursor = "default";
+                detailsDiv.innerHTML = "";
+            }
+
+            function displayCountryDetails(country) {
+                detailsDiv.innerHTML = `<h2>${country.name}</h2><p>${country.details}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

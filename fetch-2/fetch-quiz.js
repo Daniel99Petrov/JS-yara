@@ -22,6 +22,7 @@ let categoryTransformer = 22;
 let count = 20;
 let difficulty = "medium";
 let currentCount = 0;
+let localPoints = 0;
 let points = 0;
 
 // Event listener for category dropdown
@@ -174,7 +175,15 @@ function handleNextButtonClick() {
 }
 // Function to end the game
 function endGame() {
-  const pointsResult = Math.round((points / count) * 100);
+  for (let index = 0; index < correctAnswers.length; index++) {
+    if (correctAnswers[index] === myAnswers[index]) {
+      localPoints++;
+    }
+  }
+  localStorage.setItem("points", localPoints);
+  const pointsResult = Math.round(
+    (localStorage.getItem("points") / count) * 100
+  );
   pointsMessage.innerHTML = `<h2>You scored ${pointsResult}% !</h2>`;
   answers.classList.add("hidden");
   questText.classList.add("hidden");

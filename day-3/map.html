@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mapCanvas" width="600" height="400"></canvas>
+    <div id="countryDetails"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const canvas = document.getElementById("mapCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const countries = [
+                { name: "CountryA", x: 100, y: 100, width: 50, height: 50, details: "Details for CountryA." },
+                { name: "CountryB", x: 200, y: 150, width: 70, height: 40, details: "Details for CountryB." },
+                // Add more countries with their coordinates and details
+            ];
+
+            canvas.addEventListener("mousemove", handleMouseMove);
+            canvas.addEventListener("click", handleMouseClick);
+
+            function handleMouseMove(event) {
+                const mouseX = event.clientX - canvas.offsetLeft;
+                const mouseY = event.clientY - canvas.offsetTop;
+
+                for (const country of countries) {
+                    if (
+                        mouseX >= country.x &&
+                        mouseX <= country.x + country.width &&
+                        mouseY >= country.y &&
+                        mouseY <= country.y + country.height
+                    ) {
+                        canvas.style.cursor = "pointer";
+                        return;
+                    }
+                }
+                canvas.style.cursor = "default";
+            }
+
+            function handleMouseClick(event) {
+                const mouseX = event.clientX - canvas.offsetLeft;
+                const mouseY = event.clientY - canvas.offsetTop;
+
+                for (const country of countries) {
+                    if (
+                        mouseX >= country.x &&
+                        mouseX <= country.x + country.width &&
+                        mouseY >= country.y &&
+                        mouseY <= country.y + country.height
+                    ) {
+                        displayCountryDetails(country);
+                        return;
+                    }
+                }
+            }
+
+            function displayCountryDetails(country) {
+                const detailsDiv = document.getElementById("countryDetails");
+                detailsDiv.innerHTML = `<h2>${country.name}</h2><p>${country.details}</p>`;
+            }
+
+            function drawMap() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (const country of countries) {
+                    ctx.fillStyle = "#ccc"; // Use a neutral color for countries
+                    ctx.fillRect(country.x, country.y, country.width, country.height);
+                }
+            }
+
+            function animate() {
+                drawMap();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        });
+    </script>
+</body>
+</html>

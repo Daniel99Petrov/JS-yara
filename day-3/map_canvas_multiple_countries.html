@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Canvas Map</title>
+    <style>
+      canvas {
+        border: 1px solid #000;
+        cursor: pointer;
+      }
+
+      #countryDetails {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="mapCanvas" width="2300" height="1300"></canvas>
+    <div id="countryDetails"></div>
+    <script>
+      //DONE Added to follow which country are the small parts of
+      let multiCount = 0;
+      function getMinXmaxY(coordinates, countries) {
+
+        const x = coordinates.reduce((a, b) =>
+          Math.min(Number.isFinite(a) ? a : a[0], b[0])
+        );
+        const y = coordinates.reduce((a, b) =>
+          Math.max(Number.isFinite(a) ? a : a[1], b[1])
+        );
+        return { x, y };
+      }
+
+      async function getCountries(names = ["Bulgaria"]) {
+        const data = await (await fetch("europe.geojson")).json();
+
+        let countries = data.features.filter((f) =>
+          names.includes(f.properties.NAME)
+        );
+
+        console.log("countries :>> ", countries);
+
+        let min_x = Infinity;
+        let max_y = -Infinity;
+        
+
+        let results = countries.map((country) => {
+
+          if (country.geometry.type === "MultiPolygon") {
+            let count = country.geometry.coordinates;
+            let max = 0;
+            let maxI = 0;
+            multiCount++;
+            //DONE I look for the biggest piece of land from the multi country
+            for (let i = 0; i < count.length; i++) {
+              if (count[i][0].length > max) {
+                max = count[i][0].length;
+                maxI = i;
+              }
+            }
+            //DONE For every piece of land of the Country I make a whole new country
+            //DONE For the main land I add all the properties of the country
+            for (let i = 0; i < count.length; i++) {
+              const co = count[i];
+              let country1;
+              if(i === maxI) {
+                country1 = {
+                  properties: { 
+                    AREA: country.properties.AREA,
+                    FID: country.properties.FID,
+                    FIPS: country.properties.FIPS,
+                    ISO2: country.properties.ISO2,
+                    ISO3: country.properties.ISO3,
+                    LAT: country.properties.LAT,
+                    LON: country.properties.LON,
+                    NAME: country.properties.NAME,
+                    POP2005: country.properties.POP2005,
+                    REGION: country.properties.REGION,
+                    SUBREGION: country.properties.SUBREGION,
+                    UN: country.properties.UN,
+                    isMax: true,
+                    multiCount: multiCount,
+                  },
+                  geometry: {
+                    type: "Polygon",
+                    coordinates: co,
+                  },
+                };
+              } else {
+
+                country1 = {
+                  properties: {
+                    NAME: country.properties.NAME,
+                    isMax: false,
+                    multiCount: multiCount
+                  },
+                  geometry: {
+                    type: "Polygon",
+                    coordinates: co,
+                  },
+                };
+              }
+                countries.push(country1);
+            }
+
+          }
+        });
+        //DONE Now when I have already added all pieces of MultiPolygon Land as a separate country, I remove the MultiPolygon one from the array
+        for (let i = 0; i < countries.length; i++) {
+          if (countries[i].geometry.type === "MultiPolygon") {
+            countries.splice([i], 1);
+            i--;
+          }
+        }
+
+        const result = countries.map((country) => {
+          const coordinates = country.geometry.coordinates[0];
+          const { x: minX, y: maxY } = getMinXmaxY(coordinates, countries);
+
+          min_x = Math.min(minX, min_x);
+          max_y = Math.max(maxY, max_y);
+
+          return {
+            properties: country.properties,
+            minX,
+            maxY,
+            coordinates,
+            scaledCoordinates: (xOffset, yOffset, scale = 25) =>
+              coordinates.map((x) => [
+                (x[0] - xOffset) * scale,
+                (x[1] * -1 + yOffset) * scale,
+              ]),
+          };
+        });
+
+        return { countries: result, min_x, max_y };
+      }
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        const countries_data = await getCountries([
+          "Bulgaria",
+          "Romania",
+          "Serbia",
+          "The former Yugoslav Republic of Macedonia",
+          "Hungary",
+          "Greece",
+          "Turkey",
+          "Armenia",
+          "Bosnia and Herzegovina",
+          "Montenegro",
+          "Croatia",
+          "Albania",
+          "Italy",
+          "Slovenia",
+          "Switzerland",
+          "Slovakia",
+          "Austria",
+          "Republic of Moldova",
+          "Ukraine",
+          "France",
+          "Czech Republic",
+          "Germany",
+          "Poland",
+          "Spain",
+          "Portugal",
+          "United Kingdom",
+          "Denmark",
+          "Belgium",
+          "Netherlands",
+          "Malta",
+          "Estonia",
+          "Latvia",
+          "Lithuania",
+          "Finland",
+          "Norway",
+          "Sweden"
+        ]);
+        const canvas = document.getElementById("mapCanvas");
+        const ctx = canvas.getContext("2d");
+        const detailsDiv = document.getElementById("countryDetails");
+
+        console.log("countries_data :>> ", countries_data);
+
+        const countries = countries_data.countries.map(
+          ({ coordinates, scaledCoordinates, properties, multiCount, isMax }) => ({
+            countryPoints: scaledCoordinates(
+              countries_data.min_x,
+              countries_data.max_y
+            ),
+            color: getRandomColor(),
+            name: properties.NAME,
+            properties
+          })
+        );
+        //DONE Made an array of the countries that have MultiPolygon origin
+        let multiCountries = [];
+        countries.forEach(c => {
+          if(c.properties.multiCount){
+            multiCountries.push(c);
+          }
+        })
+        // DONE Made an array of the countries that are the main land, to be able to get their colors for the smaller lands
+        let maxCountries = [];
+        multiCountries.forEach(c => {
+          if(c.properties.isMax){
+            maxCountries.push(c);
+          } else {
+            //DONE Clear the name not to be displayed on the map for the small pieces, only for the main land stays
+            c.name = "";
+          }
+        })
+        let multi = multiCount;
+        //DONE If the small piece has the same multiCount as the big one, it is the same country and it gets the main land's color
+        for (let j = 0; j < multiCountries.length; j++) {
+          for (let i = 0; i < multi; i++) {
+            if(multiCountries[j].properties.multiCount === maxCountries[i].properties.multiCount){
+              multiCountries[j].color = maxCountries[i].color;
+              break;
+            }
+          }        
+        }
+
+        function drawMap() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (const c of countries) {
+            const { countryPoints, color, name } = c;
+            ctx.beginPath();
+            for (const point of countryPoints) {
+              ctx.lineTo(point[0], point[1]);
+            }
+            ctx.closePath();
+
+            // Fill color
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Border color
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2; // Thick border
+            ctx.stroke();
+
+            // Display country name
+            ctx.fillStyle = "#000";
+            ctx.font = "22px Arial";
+            centerText(ctx, countryPoints, name);
+          }
+        }
+
+        function getRandomColor() {
+          const letters = "0123456789ABCDEF";
+          let color = "#";
+
+          for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+          }
+
+          return color;
+        }
+
+        function centerText(ctx, points, text) {
+          // Calculate the centroid of the polygon
+          const centroid = points.reduce(
+            (acc, point) => [acc[0] + point[0], acc[1] + point[1]],
+            [0, 0]
+          );
+          centroid[0] /= points.length;
+          centroid[1] /= points.length;
+
+          // Measure the text width
+          const textWidth = ctx.measureText(text).width;
+
+          // Set the position to center the text
+          const x = centroid[0] - textWidth / 2;
+          const y = centroid[1] + 5; // Adjust as needed for vertical alignment
+
+          // Draw the text
+          ctx.fillText(text, x, y);
+        }
+
+        function handleMouseOver(event, showDetails = false) {
+          const mouseX = event.clientX - canvas.offsetLeft;
+          const mouseY = event.clientY - canvas.offsetTop;
+
+          for (const country of countries) {
+            ctx.beginPath();
+            for (const point of country.countryPoints) {
+              ctx.lineTo(point[0], point[1]);
+            }
+            ctx.closePath();
+
+            if (ctx.isPointInPath(mouseX, mouseY)) {
+              canvas.style.cursor = "pointer";
+              if (!detailsDiv.classList.contains(country.name)) {
+                detailsDiv.className = country.name;
+                detailsDiv.innerHTML = `<h2>${country.name}</h2>`;
+              }
+
+              if (showDetails && detailsDiv.classList.length === 1) {
+                detailsDiv.classList.add("details");
+                detailsDiv.innerHTML += `<pre>${JSON.stringify(
+                  country.properties,
+                  null,
+                  2
+                )}</pre>`;
+              }
+              return;
+            }
+          }
+
+          canvas.style.cursor = "crosshair";
+
+        }
+
+        canvas.addEventListener("mousemove", (event) => {
+          handleMouseOver(event);
+        });
+        canvas.addEventListener("click", (event) => {
+          handleMouseOver(event, true);
+        });
+
+        function animate() {
+          drawMap();
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      });
+    </script>
+  </body>
+</html>
