@@ -1,3 +1,4 @@
+// Get references to HTML elements
 let categoryDropdown = document.getElementById("select-category");
 let countDropdown = document.getElementById("select-count");
 let difficultyDropdown = document.getElementById("select-difficulty");
@@ -9,23 +10,21 @@ let answers = document.querySelector(".answers");
 let history = document.querySelector(".history-cards");
 let pointsMessage = document.querySelector(".points");
 
-// let history = {};
-// history.array.forEach(element => {
-//     document.createElement(p)
-// });
-
+// Initialize variables for quiz state
 let allQuestions = [];
 let currentQuestion = {};
 let questionText;
 let currentAnswers = [];
 let myAnswers = [];
 let correctAnswer;
+let correctAnswers = [];
 let categoryTransformer = 22;
 let count = 20;
 let difficulty = "medium";
 let currentCount = 0;
 let points = 0;
 
+// Event listener for category dropdown
 categoryDropdown.onchange = (ev) => {
   let selectedIndex = categoryDropdown.selectedIndex;
   let selectedOption = categoryDropdown.options[selectedIndex];
@@ -39,6 +38,7 @@ categoryDropdown.onchange = (ev) => {
   console.log(categoryTransformer);
 };
 
+// Event listener for count dropdown
 countDropdown.onchange = (ev) => {
   let selectedIndex = countDropdown.selectedIndex;
   let selectedOption = countDropdown.options[selectedIndex];
@@ -50,7 +50,7 @@ countDropdown.onchange = (ev) => {
     count = 20;
   }
 };
-
+// Event listener for difficulty dropdown
 difficultyDropdown.onchange = (ev) => {
   let selectedIndex = difficultyDropdown.selectedIndex;
   let selectedOption = difficultyDropdown.options[selectedIndex];
@@ -62,7 +62,7 @@ difficultyDropdown.onchange = (ev) => {
     difficulty = "medium";
   }
 };
-
+// Function to shuffle an array
 function shuffle(array) {
   let currentIndex = array.length,
     randomIndex;
@@ -82,7 +82,7 @@ function shuffle(array) {
 
   return array;
 }
-
+// Function to display a question
 function displayQuestion() {
   currentQuestion = allQuestions[currentCount - 1];
   questionText = `${currentCount}.${currentQuestion.question}`;
@@ -123,7 +123,7 @@ function displayQuestion() {
     answers.classList.add("answers-container");
   });
 }
-
+// Function to handle the "Next" button click
 function handleNextButtonClick() {
   // Get the selected radio button
   const selectedRadioButton = document.querySelector(
@@ -135,6 +135,7 @@ function handleNextButtonClick() {
   // Check if a radio button is selected
   if (selectedRadioButton) {
     selectedRadioButton.classList.add("checked");
+    // Update history with the current question and answers
     history.innerHTML += `${questionText}
     <br><br>
     ${answers.innerHTML} 
@@ -151,7 +152,8 @@ function handleNextButtonClick() {
 
     // Store the chosen answer in the array
     myAnswers.push(selectedLabel);
-    console.log(myAnswers);
+    correctAnswers.push(currentQuestion.correct_answer);
+
     if (selectedLabel === currentQuestion.correct_answer) {
       points++;
     }
@@ -170,18 +172,18 @@ function handleNextButtonClick() {
     alert("Please select an answer before moving to the next question.");
   }
 }
-
+// Function to end the game
 function endGame() {
   const pointsResult = Math.round((points / count) * 100);
-      pointsMessage.innerHTML = `<h2>You scored ${pointsResult}% !</h2>`;
-      answers.classList.add("hidden");
-      questText.classList.add("hidden");
-      document.querySelector(".history").classList.remove("hidden");
-      nextButton.classList.add("hidden");
-
-      
+  pointsMessage.innerHTML = `<h2>You scored ${pointsResult}% !</h2>`;
+  answers.classList.add("hidden");
+  questText.classList.add("hidden");
+  document.querySelector(".history").classList.remove("hidden");
+  nextButton.classList.add("hidden");
+  localStorage.setItem("myAnswers", myAnswers);
+  localStorage.setItem("correctAnswers", correctAnswers);
 }
-
+// Function to reset the game state
 function resetGame() {
   answers.classList.add("hidden");
   resetButton.classList.add("hidden");
@@ -192,16 +194,18 @@ function resetGame() {
   questText.classList.remove("hidden");
   history.innerHTML = ``;
   allQuestions = [];
-  
-      currentQuestion = {};
-      questionText;
-      currentAnswers = [];
-      myAnswers = [];
-      correctAnswer;
-      currentCount = 0;
-      points = 0;
+  localStorage.clear();
 
+  currentQuestion = {};
+  questionText;
+  currentAnswers = [];
+  myAnswers = [];
+  myAnswersLocal = [];
+  correctAnswer;
+  currentCount = 0;
+  points = 0;
 }
+// Event listener for the "Start" button click
 searchButton.addEventListener("click", function () {
   fetch(
     `https://opentdb.com/api.php?amount=${count}&category=${categoryTransformer}&type=multiple&difficulty=${difficulty}`
@@ -223,13 +227,12 @@ searchButton.addEventListener("click", function () {
         allQuestions.push(element);
       });
       console.log(allQuestions);
+      localStorage.clear();
+      localStorage.setItem("questions", JSON.stringify(data.results));
       displayQuestion();
     });
 });
-
+// Event listener for the "Next" button click
 nextButton.addEventListener("click", handleNextButtonClick);
-
-resetButton.addEventListener('click', resetGame);
-
-// TODO make radio buttons invisible in history
-// TODO chosen answer to be marked in orange
+// Event listener for the "Reset" button click
+resetButton.addEventListener("click", resetGame);
