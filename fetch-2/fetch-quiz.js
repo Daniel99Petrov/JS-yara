@@ -9,6 +9,7 @@ let questText = document.querySelector(".quest-text");
 let answers = document.querySelector(".answers");
 let history = document.querySelector(".history-cards");
 let pointsMessage = document.querySelector(".points");
+let downloadButton = document.querySelector(".download");
 
 // Initialize variables for quiz state
 let allQuestions = [];
@@ -181,6 +182,7 @@ function endGame() {
     }
   }
   localStorage.setItem("points", localPoints);
+  localStorage.setItem("questionsCount", count);
   const pointsResult = Math.round(
     (localStorage.getItem("points") / count) * 100
   );
@@ -188,6 +190,7 @@ function endGame() {
   answers.classList.add("hidden");
   questText.classList.add("hidden");
   document.querySelector(".history").classList.remove("hidden");
+  downloadButton.classList.remove("hidden");
   nextButton.classList.add("hidden");
   localStorage.setItem("myAnswers", myAnswers);
   localStorage.setItem("correctAnswers", correctAnswers);
@@ -197,6 +200,7 @@ function resetGame() {
   answers.classList.add("hidden");
   resetButton.classList.add("hidden");
   nextButton.classList.add("hidden");
+  downloadButton.classList.add("hidden");
   searchButton.classList.remove("hidden");
   document.querySelector(".history").classList.add("hidden");
   questText.textContent = `Press START`;
@@ -245,3 +249,20 @@ searchButton.addEventListener("click", function () {
 nextButton.addEventListener("click", handleNextButtonClick);
 // Event listener for the "Reset" button click
 resetButton.addEventListener("click", resetGame);
+
+const worker = new Worker("./worker.js", { type: "module" });
+
+downloadButton.addEventListener("click", () => {
+  const points = localStorage.getItem("points");
+  const questionsCount = localStorage.getItem("questionsCount");
+  // const correctAnswers = JSON.parse(localStorage.getItem("correctAnswers"));
+  console.log(myAnswers);
+  worker.onmessage = (e) => {
+    const blob = e.data;
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "QuizPoints.zip";
+    link.click();
+  };
+  worker.postMessage({ points, questionsCount });
+});
